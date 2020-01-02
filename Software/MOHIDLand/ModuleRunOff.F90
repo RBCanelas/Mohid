@@ -7387,6 +7387,20 @@ i2:                 if      (FlowDistribution == DischByCell_ ) then
         
     end subroutine DynamicWaveYY
     
+    !---------------------------------------------------------------------------
+    !> @author Ricardo Birjukovs Canelas - Bentley Systems
+    !> @brief
+    !> Computes the fluxes between cells using a finite volume flux vector 
+    !> spliting method. This allows the Riemman problems betwen cells to be
+    !> solved with a simple Godunov solver.
+    !---------------------------------------------------------------------------
+    subroutine ComputeFluxesFVS(criticalDt)
+    integer, intent(out) :: criticalDt !> the maximum dt is computed based on a CFL condition applied to wave celerity
+    integer :: i,j
+    
+    
+    end subroutine ComputeFluxesFVS
+    
     !-------------------------------------------------------------------------
     
 !    real function HydraulicRadius(i,j,Direction, level_before, level_after)
