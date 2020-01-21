@@ -7532,15 +7532,11 @@ i2:                 if      (FlowDistribution == DischByCell_ ) then
                     dz_bar = dz
 
                     if ( dz >= 0.0 ) then
-                        if ( di < bj ) then
-                            dz_bar = hi
-                        end if
+                        if ( di < bj ) dz_bar = hi
                     end if
 
                     if ( dz < 0.0 ) then
-                        if ( dj < bi ) then      !See Murillo, 2010
-                            dz_bar = -hj
-                        end if
+                        if ( dj < bi ) dz_bar = -hj      !See Murillo, 2010
                     end if
 
                     aux1 = hj
@@ -7551,9 +7547,7 @@ i2:                 if      (FlowDistribution == DischByCell_ ) then
 
                     if ( (dj-di)*dz >= 0.0 ) then
                         if ( vel_normal*dz > 0.0 ) then
-                            if (abs(bottom1) > abs(bottom2)) then !choice of the better trust term
-                                bottom = bottom1
-                            end if
+                            if (abs(bottom1) > abs(bottom2)) bottom = bottom1 !choice of the better trust term
                         end if
                     end if
 
@@ -7561,7 +7555,6 @@ i2:                 if      (FlowDistribution == DischByCell_ ) then
                     beta(2) = 0
                     beta(3) = -beta(1)
 
-                    !local structure wave corrections
                     !local structure wave corrections
                     aux1 = lambda(1)*lambda(3)
                     if (aux1 < 0.0) then !Subcritical Flow, source terms need to be taken into account
@@ -7606,9 +7599,7 @@ i2:                 if      (FlowDistribution == DischByCell_ ) then
                     hj_3s = 0.0
 
                     do k=1, 3
-                        if (abs(lambda(k)) > 0.0) then     !only "entering" caracteristics
-                            dt = min(dt, min_area/(lenght_act*abs(lambda(k))))    !updating stability region size
-                        end if
+                        if (abs(lambda(k)) > 0.0) dt = min(dt, min_area/(lenght_act*abs(lambda(k))))     !only "entering" caracteristics contribute to the stability region
                     end do
 
                     if ( abs(bottom) > 0.0) then
