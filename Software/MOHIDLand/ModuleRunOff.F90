@@ -5346,6 +5346,7 @@ cd1 :   if ((ready_ .EQ. IDLE_ERR_     ) .OR. &
         integer                                     :: Niter, iter
         integer                                     :: n_restart
         logical                                     :: IsFinalFile
+        real                                        :: temp
         !----------------------------------------------------------------------
 
         STAT_ = UNKNOWN_
@@ -5438,6 +5439,7 @@ doIter:         do while (iter <= Niter)
                         case (DiffusionWave_)
                             call KinematicWave  ()            !Slope based on surface
                         case (DynamicWave_)
+                            call ComputeFluxesFVS(temp)
                             call ComputeFaceVelocityModulus
                             call DynamicWaveXX    (Me%CV%CurrentDT)   !Consider Advection, Friction and Pressure
                             call DynamicWaveYY    (Me%CV%CurrentDT)
@@ -7394,7 +7396,7 @@ i2:                 if      (FlowDistribution == DischByCell_ ) then
     !> spliting method. Returns a maximum admissable time step to ensure stability
     !---------------------------------------------------------------------------
     subroutine ComputeFluxesFVS(criticalDt)
-    integer, intent(out) :: criticalDt      !> the maximum dt is computed based on a CFL condition applied to wave celerity
+    real, intent(out) :: criticalDt      !> the maximum dt is computed based on a CFL condition applied to the stability region
     integer :: i,j, k, q, c                          !> iterators
     integer, dimension(2) :: cellI, cellJ               !> cell addresses
     integer, dimension(2,2) :: strideJ
@@ -7423,6 +7425,7 @@ i2:                 if      (FlowDistribution == DischByCell_ ) then
     dt = 999999999.0
 
     allocate(element_flux(IUB-ILB, JUB-JLB, 3))
+    element_flux = 0.0
     strideJ = transpose(reshape((/ 1, 0, 0, 1 /), shape(strideJ))) !moving to the east and north cells
     
     !Iterating trough every cell to compute the approximate Jacobian across each edge
@@ -7452,12 +7455,12 @@ i2:                 if      (FlowDistribution == DischByCell_ ) then
                 bi=Me%ExtVar%Topography(cellI(1), cellI(2))
                 bj=Me%ExtVar%Topography(cellJ(1), cellJ(2))
 
-                ai=Me%AreaU(cellI(1), cellI(2))
-                aj=Me%AreaU(cellJ(1), cellJ(2))
+                ai=Me%ExtVar%GridCellArea(cellI(1), cellI(2))
+                aj=Me%ExtVar%GridCellArea(cellJ(1), cellJ(2))
                 lenght_act = Me%ExtVar%DXX(cellI(1), cellI(2)) !-this is not always DXX!
                 min_area = min(ai, aj)
 
-                if (hi+hj >= 0.0) then
+                if (hi+hj >= AlmostZero) then
 
                     !Aproximate variables (Roe, 1981)
                     aux1 = sqrt(hi)
@@ -7466,6 +7469,9 @@ i2:                 if      (FlowDistribution == DischByCell_ ) then
                     ubar = (ui*aux1+uj*aux2)/aux3 !xx speed aproximation in i edge
                     vbar = (vi*aux1+vj*aux2)/aux3 !yy speed aproximation in i edge
                     cbar = sqrt(Gravity*(hi+hj)/2) !c aproximation in i edge
+                    
+                    nx = strideJ(c, 1)
+                    ny = strideJ(c, 2)
 
                     vel_normal = ubar*nx+vbar*ny !normal speed
 
@@ -7484,8 +7490,8 @@ i2:                 if      (FlowDistribution == DischByCell_ ) then
                     lambda_j(1) = uj*nx+vj*ny - sqrt(Gravity*hj)
                     lambda_j(3) = uj*nx+vj*ny + sqrt(Gravity*hj)
 
-                    if ( lambda_i(1) < 0 ) then
-                        if ( lambda_j(1) > 0 ) then
+                    if ( lambda_i(1) < 0.0 ) then
+                        if ( lambda_j(1) > 0.0 ) then
                             aux1 = (lambda_j(1) - lambda(1))/(lambda_j(1) - lambda_i(1))
                             aux2 = (lambda(1) - lambda_i(1))/(lambda_j(1) - lambda_i(1))
                             lambda_aux(1) = lambda_j(1)*aux2
@@ -7493,8 +7499,8 @@ i2:                 if      (FlowDistribution == DischByCell_ ) then
                         end if
                     end if
 
-                    if ( lambda_i(3) < 0 ) then
-                        if ( lambda_j(3) > 0 ) then
+                    if ( lambda_i(3) < 0.0 ) then
+                        if ( lambda_j(3) > 0.0 ) then
                             aux1 = (lambda(3) - lambda_i(3))/(lambda_j(3) - lambda_i(3))
                             aux2 = (lambda_j(3) - lambda(3))/(lambda_j(3) - lambda_i(3))
                             lambda_aux(3) = lambda_i(3)*aux2
@@ -7682,6 +7688,7 @@ i2:                 if      (FlowDistribution == DischByCell_ ) then
     end do
 
     criticalDt = dt!*CFLCoeff
+    print*, 'dt would be ', dt
 
     end subroutine ComputeFluxesFVS
     
