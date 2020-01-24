@@ -7719,8 +7719,14 @@ i2:                 if      (FlowDistribution == DischByCell_ ) then
     real, dimension(3) :: conservedVar     !> conserved quantities - water column and momentum
     real, dimension(3) :: primitiveVar     !> primitive quantities - water column and velocities
     integer :: ILB, IUB, JLB, JUB          !> Grid cell counts
+    integer :: i, j ,q                     !> Iterators
     real :: h_treshold                     !> Depth threshold to desingularize velocity computation
     real :: aux3                           !> Local var
+
+    real, dimension(:,:,:), allocatable :: element_flux
+
+    allocate(element_flux(IUB-ILB, JUB-JLB, 3))
+    element_flux = 0.0
 
     ILB = Me%WorkSize%ILB
     IUB = Me%WorkSize%IUB
