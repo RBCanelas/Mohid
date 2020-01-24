@@ -7749,11 +7749,11 @@ i2:                 if      (FlowDistribution == DischByCell_ ) then
                 conservedVar(q) = conservedVar(q) + element_flux(i, j, q)*Dt
             end do
 
-            if (abs(conservedVar(1)) > AlmostZero) then !Acceptable whater height, above machine precision
+            if (abs(conservedVar(1)) > AlmostZero) then !Acceptable flow depth, above machine precision
                 primitiveVar(1) = conservedVar(1)
                 primitiveVar(2) = conservedVar(2)/conservedVar(1)
                 primitiveVar(3) = conservedVar(3)/conservedVar(1)
-                if (primitiveVar(1) < h_treshold)then !non-acceptable water height for velocity computation, only for momentum
+                if (primitiveVar(1) < h_treshold)then !non-acceptable flow depth for velocity computation, only for momentum
                     primitiveVar(2) = sqrt(2.0)*conservedVar(2)/sqrt(conservedVar(1)**4.0 + max(conservedVar(1)**4.0, h_treshold*max(1.0,sqrt(2*Me%ExtVar%GridCellArea(i, j))))) !desingularizing the computation
                     primitiveVar(3) = sqrt(2.0)*conservedVar(3)/sqrt(conservedVar(1)**4.0 + max(conservedVar(1)**4.0, h_treshold*max(1.0,sqrt(2*Me%ExtVar%GridCellArea(i, j))))) !anyting goes - Kurganov-Petrova
                 end if
